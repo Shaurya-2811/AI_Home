@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Secrets - never commit credentials
+.env
+kaggle.json
+access_token
+
+# Large / generated artefacts
+data/raw/*
+data/processed/*
+data/registry.json
+!data/**/.gitkeep
+models/*
+!models/.gitkeep
+outputs/*
+!outputs/.gitkeep
+uploads/*
+!uploads/.gitkeep
+reports/assets/
+runs/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip

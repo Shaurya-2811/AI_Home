@@ -1,0 +1,54 @@
+# Fine-tuning configuration (Ultralytics YOLO). Run:
+#   python cli.py train --config configs/training.yaml --yes
+# Nothing downloads or trains without --yes.
+
+seed: 42
+device: auto              # auto | cpu | cuda:0 | 0,1 (multi-GPU)
+weights: yolo26n.pt       # pretrained starting point (never trains from scratch by default)
+data: data/processed/person/data.yaml   # YOLO data.yaml produced by `cli.py datasets split`
+
+epochs: 50
+batch: 16                 # -1 = Ultralytics auto-batch (GPU only)
+imgsz: 640
+lr0: 0.0002               # small: on coco128, AdamW lr0=1e-3 degraded the pretrained model within 3 epochs, 1e-4 did not
+lrf: 0.01
+optimizer: AdamW
+weight_decay: 0.0005
+warmup_epochs: 1
+warmup_bias_lr: 0.0       # Ultralytics' default (0.1) targets training from scratch; 0 is the conservative choice for fine-tuning
+patience: 10              # early stopping (epochs without val improvement)
+amp: true                 # mixed precision; Ultralytics disables it automatically on CPU
+workers: 4
+cache: false
+freeze: null              # e.g. 10 to freeze the first 10 layers on small datasets
+single_cls: false
+keep_pretrained_head: true   # reuse the COCO head (person = class 0) instead of a new random 1-class head
+project: models/runs
+name: person_finetune
+resume: false             # true, or a path to last.pt
+val: true
+plots: true
+
+# Built-in Ultralytics augmentations (applied on the fly to TRAINING batches only)
+augment:
+  hsv_h: 0.015
+  hsv_s: 0.6
+  hsv_v: 0.5
+  degrees: 0.0
+  translate: 0.1
+  scale: 0.5
+  fliplr: 0.5
+  mosaic: 1.0
+  mixup: 0.0
+  erasing: 0.3
+  close_mosaic: 10
+
+# Offline environmental augmentation (fog, rain, low light, glare, blur, noise, occlusion ...)
+# adds augmented copies of the TRAIN split only. Val/test stay clean.
+environmental:
+  enabled: false
+  copies: 1
+  probs: {}               # override per-transform probabilities, e.g. {fog: 0.2, low_light: 0.3}
+
+# Safety: weights larger than this (MB) are not downloaded without --allow-large
+max_auto_download_mb: 60

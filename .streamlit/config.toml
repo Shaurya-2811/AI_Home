@@ -1,0 +1,7 @@
+[server]
+address = "127.0.0.1"      # local only by default
+maxUploadSize = 1024       # MB; keep in sync with limits.max_upload_mb in configs/default.yaml
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false

@@ -1,0 +1,83 @@
+# Default inference configuration for human-tracking-ai.
+# Every value can be overridden from the CLI (--set key.sub=value) or the Streamlit UI.
+
+device: auto            # auto | cpu | cuda | cuda:0 | mps
+
+detector:
+  backend: ultralytics  # Ultralytics YOLO family (YOLO26, YOLO11, YOLOv8 ... any checkpoint with a "person" class)
+  weights: models/yolo26n.pt   # falls back to downloading "yolo26n.pt" (5.3 MB) only if allow_download is true
+  allow_download: true  # set false for fully offline operation
+  conf: 0.25            # minimum detection confidence passed to the tracker (low-score boxes feed ByteTrack's 2nd stage)
+  iou: 0.7              # NMS IoU threshold (ignored by NMS-free YOLO26 end-to-end heads)
+  imgsz: 640            # inference size; Ultralytics letterboxes so aspect ratio is preserved
+  half: auto            # auto = FP16 on CUDA, FP32 on CPU
+  max_det: 300
+  min_box_area: 0       # drop boxes smaller than this many pixels (0 keeps small/distant people)
+
+preprocessing:
+  enabled: false
+  method: auto          # auto | clahe | gamma | dehaze | none ; auto applies CLAHE+gamma only to dark frames
+  low_light_threshold: 60   # mean luma (0-255) below which "auto" enhances a frame
+  check_every: 15       # re-evaluate scene brightness every N processed frames (avoids per-frame cost)
+  gamma: 1.6
+  clahe_clip: 2.0
+
+tracker:
+  type: botsort         # botsort | bytetrack | ocsort | deepocsort | tracktrack | fasttrack (Ultralytics implementations)
+  track_high_thresh: 0.25
+  track_low_thresh: 0.1
+  new_track_thresh: 0.25
+  track_buffer: 30      # frames (in SOURCE frames; rescaled automatically when frame skipping)
+  match_thresh: 0.8
+  fuse_score: true
+  # BoT-SORT only
+  gmc_method: sparseOptFlow   # camera-motion compensation (~7 ms/frame on CPU); set "none" for fixed cameras
+  proximity_thresh: 0.5
+  appearance_thresh: 0.8
+  with_reid: false      # feed appearance embeddings (from the reid.backend below) into BoT-SORT association
+
+reid:
+  enabled: false        # cross-time / cross-video "visual identity" labels. NOT identity verification.
+  backend: histogram    # histogram (no weights) | yolo_cls (generic ImageNet features) | torchreid (real ReID weights)
+  weights: null         # e.g. models/osnet_x0_25_msmt17.pth for torchreid, models/yolo26n-cls.pt for yolo_cls
+  torchreid_model: osnet_x0_25
+  similarity_threshold: 0.80  # cosine similarity needed to reuse an existing visual identity
+  min_track_frames: 5   # frames a track must be observed before it gets a visual identity (else "unknown")
+  sample_every: 5       # extract an embedding for a track every N processed frames
+  min_crop_height: 48   # crops smaller than this are too unreliable to embed
+  max_samples_per_track: 20
+  gallery_path: null    # optional .npz gallery for cross-video matching
+
+video:
+  frame_stride: 1       # process every Nth frame (timestamps stay correct)
+  target_fps: null      # alternatively, sample to approximately this FPS
+  max_frames: null      # stop after this many processed frames
+  resize_max_side: null # downscale frames for processing, preserving aspect ratio
+  batch_size: 1         # detector batch size (>1 helps on GPU)
+
+output:
+  dir: outputs
+  save_video: true
+  draw_trails: true
+  trail_length: 30
+  draw_confidence: true
+  save_crops: false
+  crop_every: 15
+  save_frames: false
+  frame_every: 30
+  h264: true            # re-encode output with ffmpeg/libx264 so browsers can play it
+
+limits:
+  max_upload_mb: 1024
+  max_duration_s: 3600
+  allowed_extensions: [".mp4", ".avi", ".mov", ".mkv", ".m4v", ".webm", ".mpg", ".mpeg", ".wmv"]
+
+retention:
+  uploads_hours: 24     # uploaded videos older than this are deleted on app start
+  outputs_days: 7       # rendered videos, CSV/JSON, crops
+  enabled: true
+
+quality:
+  low_confidence: 0.4       # warn when mean track confidence is below this
+  short_track_frames: 5     # tracks shorter than this count as fragments
+  short_track_ratio: 0.5    # warn when more than this fraction of tracks are fragments
