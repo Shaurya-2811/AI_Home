@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # human-tracking-ai
 
 Detect, track and (optionally) re-identify people in video. Pretrained Ultralytics YOLO person detection,
@@ -377,3 +378,7 @@ Recommended next steps, in order:
 (e.g. `osnet_x0_25_msmt17`) from the torchreid model zoo into `models/`, then
 `--set reid.enabled=true reid.backend=torchreid reid.torchreid_model=osnet_x0_25 reid.weights=models/<file>.pth`.
 Check the license of the dataset the weights were trained on before commercial use.
+=======
+# IRIS
+IRIS - Immediate Response Intelligent Surveillance
+>>>>>>> fb885fe73f19252ad71de2a3342eae66f4a641fa
